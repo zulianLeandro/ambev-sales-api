@@ -52,7 +52,27 @@ public class Program
 
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+            // Local: src/Ambev.DeveloperEvaluation.WebApi/Program.cs
             var app = builder.Build();
+            using (var scope = app.Services.CreateScope())
+            {
+                var services = scope.ServiceProvider;
+                try
+                {
+                    var context = services.GetRequiredService<DefaultContext>();
+                    // Aguarda até 30 segundos para o banco subir no Docker
+                    if (context.Database.GetPendingMigrations().Any())
+                    {
+                        context.Database.Migrate();
+                        Console.WriteLine("Banco de dados sincronizado com sucesso.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Mude de "Aguardando..." para ver o erro real:
+                    Console.WriteLine($"FALHA NA MIGRATION: {ex.Message} - {ex.InnerException?.Message}");
+                }
+            }
             app.UseMiddleware<ValidationExceptionMiddleware>();
 
             if (app.Environment.IsDevelopment())

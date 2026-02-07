@@ -55,13 +55,17 @@ public class SaleRepository : ISaleRepository
         return sale;
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        var sale = await GetByIdAsync(id, cancellationToken);
+        var sale = await _context.Sales
+            .Include(s => s.Items)
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+
         if (sale == null) return false;
 
-        _context.Sales.Remove(sale);
-        await _context.SaveChangesAsync(cancellationToken);
-        return true;
+        sale.CancelSale();
+
+        _context.Sales.Update(sale);
+        return await _context.SaveChangesAsync(cancellationToken) > 0;
     }
 }

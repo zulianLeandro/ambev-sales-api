@@ -15,7 +15,6 @@ public class SaleEventHandler :
 
     public Task Handle(SaleCreatedEvent notification, CancellationToken cancellationToken)
     {
-        // Demonstração do diferencial solicitado no README
         _logger.LogInformation("DIFFERENTIAL: Sale {SaleNumber} created for Customer {CustomerId}. Amount: {Total}",
             notification.Sale.SaleNumber,
             notification.Sale.CustomerId,
